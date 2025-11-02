@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Advent Christmas Calendar</title>
+  <style>
+    :root {
+      --cols: 4;
+      --rows: 6;
+      --gap: 12px;
+      --bg: #ffffff;
+      --accent: #6b5f4b;
+      --number-size: 18px;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      color: #333;
+    }
+    .wrap {
+      max-width: 920px;
+      margin: 36px auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 20px 0;
+      font-size: 30px;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      gap: var(--gap);
+    }
+    .door {
+      position: relative;
+      perspective: 800px;
+      aspect-ratio: 1 / 1;
+    }
+    .inner {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      transform-style: preserve-3d;
+      transition: transform 0.8s;
+      cursor: pointer;
+    }
+    .door.open .inner {
+      transform: rotateY(180deg);
+    }
+    .front, .back {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      backface-visibility: hidden;
+    }
+    .front {
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .lock-icon {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--accent);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .door.locked .lock-icon {
+      opacity: 1;
+    }
+    .day-number {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255,255,255,0.9);
+      width: 36px; height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 50%;
+      color: var(--accent);
+      font-size: var(--number-size);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .back {
+      background: #fef7f2;
+      transform: rotateY(180deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+    .message {
+      font-size: 12px;
+      color: #444;
+      line-height: 1.2em;
+      text-align: center;
+      word-wrap: break-word;       /* Ensures long words wrap */
+      overflow-wrap: break-word;   /* Modern alternative for text wrapping */
+      white-space: normal;         /* Allows text to wrap normally */
+      max-width: 300px;            /* Optional: set width for wrapping */
+      margin: 0 auto;              /* Centers the message block */
+    }
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .unlock-btn, .lock-btn {
+      padding: 12px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .unlock-btn:hover, .lock-btn:hover {
+      background: #5b4e3d;
+    }
+    @media (max-width: 720px) {
+      .calendar { gap: 8px; }
+      .day-number { width: 30px; height: 30px; font-size: 15px; }
+      .lock-icon { width: 26px; height: 26px; font-size: 14px; }
+      h1 { font-size: 24px; }
+      .unlock-btn, .lock-btn { font-size: 14px; padding: 10px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Advent Christmas Calendar</h1>
+    <div id="calendar" class="calendar"></div>
+    <div class="buttons">
+      <button id="unlockAllBtn" class="unlock-btn">🔓 Unlock All Doors</button>
+      <button id="lockAllBtn" class="lock-btn">🔒 Lock All Doors</button>
+    </div>
+  </div>
+
+  <script>
+    const cols = 4;
+    const rows = 6;
+    const total = cols * rows;
+    const today = new Date();
+    const currentDay = today.getMonth() === 11 ? today.getDate() : 0;
+    let unlockAll = false;
+
+    // 🎅 24 different Unsplash image URLs (you can change keywords!)
+    const imageUrls = [
+      "https://i.pinimg.com/736x/3f/94/aa/3f94aa8ea0bfa774c2d80e68a8ea223c.jpg",
+      "https://i.pinimg.com/736x/2d/08/77/2d0877673bfb5ccd740c063132f83c22.jpg",
+      "https://i.pinimg.com/736x/1e/1e/51/1e1e51beb3f2ade9daee1f472320dd77.jpg",
+      "https://i.pinimg.com/736x/4f/76/a7/4f76a70dbc48439dace840f8d429b0b9.jpg",
+      "https://i.pinimg.com/736x/df/bd/8b/dfbd8b40100c98e404f4ed4b98c4445e.jpg",
+      "https://i.pinimg.com/736x/93/45/d2/9345d2eb58570d4aac41fbdc8a79d02b.jpg",
+      "https://i.pinimg.com/736x/2c/ec/f6/2cecf64b20301adebfb0d4f6b44b9384.jpg",
+      "https://i.pinimg.com/736x/63/ef/4b/63ef4b8b264002b5d1a6e63e4db358b7.jpg",
+      "https://i.pinimg.com/736x/39/6c/89/396c8904c7f47f02742284fbfa967a3c.jpg",
+      "https://i.pinimg.com/736x/79/a1/20/79a120bdcede381a2157bed65029852b.jpg",
+      "https://i.pinimg.com/736x/ef/fe/67/effe67c93913a6320782166085f4ae83.jpg",
+      "https://i.pinimg.com/736x/eb/6e/5e/eb6e5e879063483a5233f720c2ccf45b.jpg",
+      "https://i.pinimg.com/736x/ce/3a/20/ce3a2003464ace1c705ed04d06242777.jpg",
+      "https://i.pinimg.com/736x/96/c3/17/96c3176e867c7482628713618763ad87.jpg",
+      "https://i.pinimg.com/736x/09/91/34/099134045409b4a58ec650a2fdd18f26.jpg",
+      "https://i.pinimg.com/736x/0b/09/61/0b0961343fc27d8c4f38a84392473689.jpg",
+      "https://i.pinimg.com/736x/d1/dc/6a/d1dc6ac4e37e0fad2ef750a8827b44e4.jpg",
+      "https://i.pinimg.com/736x/6e/10/0c/6e100cafbbf453fb54325d85446b96d5.jpg",
+      "https://i.pinimg.com/736x/54/2c/28/542c28fbe2eb29ec2ffd444fb9563c36.jpg",
+      "https://i.pinimg.com/736x/da/71/e5/da71e53d410d1ed1a2a9dc4a735bce80.jpg",
+      "https://i.pinimg.com/736x/27/cb/31/27cb31aedd28484dff9983e4b3b0ac8d.jpg",
+      "https://i.pinimg.com/736x/7b/23/35/7b2335d481842650f5d645ee9578b472.jpg",
+      "https://i.pinimg.com/736x/17/69/4a/17694abe1da5da276e0c3a2faae3eaca.jpg",
+      "https://i.pinimg.com/736x/3f/55/6b/3f556be9ef89d06ef6bf076d6fa86a18.jpg"
+    ];
+
+    const messages = [
+      "Day 1: Light a candle and think of someone you love.",
+      "Day 2: Bake your favorite Christmas cookies.",
+      "Day 3: Hang some festive decorations.",
+      "Day 4: Watch a cozy holiday movie.",
+      "Day 5: Call a friend or family member.",
+      "Day 6: Write a kind note to someone.",
+      "Day 7: Drink hot chocolate with marshmallows.",
+      "Day 8: Go for a winter walk.",
+      "Day 9: Light a Christmas-scented candle.",
+      "Day 10: Do a small act of kindness.",
+      "Day 11: Play a game with friends and who lose to buy a coffee",
+      "Day 12: Wear your coziest sweater.",
+      "Day 13: Enjoy a sweet Christmas treat.",
+      "Day 14: Wrap a thoughtful gift.",
+      "Day 15: Read a Christmas story.",
+      "Day 16: Make a warm drink and relax.",
+      "Day 17: Listen to Christmas music.",
+      "Day 18: Add pinecones or nature to your decor.",
+      "Day 19: Send someone a warm message.",
+      "Day 20: Wear warm mittens and go outside.",
+      "Day 21: Shake a snow globe or imagine a snowy scene.",
+      "Day 22: Visit a Christmas tree or decorate your own.",
+      "Day 23: Place gifts under the tree.",
+      "Day 24: Merry Christmas Eve 🎄"
+    ];
+
+    const calendar = document.getElementById('calendar');
+    const unlockBtn = document.getElementById('unlockAllBtn');
+    const lockBtn = document.getElementById('lockAllBtn');
+
+    // Create doors
+    for (let i = 1; i <= total; i++) {
+      const door = document.createElement('div');
+      door.className = 'door';
+
+      const inner = document.createElement('div');
+      inner.className = 'inner';
+
+      const front = document.createElement('div');
+      front.className = 'front';
+      front.style.backgroundImage = `url("${imageUrls[i - 1]}")`;
+
+      const num = document.createElement('div');
+      num.className = 'day-number';
+      num.textContent = i;
+      front.appendChild(num);
+
+      const lockIcon = document.createElement('div');
+      lockIcon.className = 'lock-icon';
+      lockIcon.textContent = '🔒';
+      front.appendChild(lockIcon);
+
+      const back = document.createElement('div');
+      back.className = 'back';
+      const msg = document.createElement('div');
+      msg.className = 'message';
+      msg.textContent = messages[i - 1] || `Day ${i}`;
+      back.appendChild(msg);
+
+      inner.appendChild(front);
+      inner.appendChild(back);
+      door.appendChild(inner);
+      calendar.appendChild(door);
+
+      if (i > currentDay && !unlockAll) {
+        door.classList.add('locked');
+      }
+
+      door.addEventListener('click', () => {
+        if (door.classList.contains('locked')) return;
+        door.classList.toggle('open');
+      });
+    }
+
+    // Unlock all doors
+    unlockBtn.addEventListener('click', () => {
+      unlockAll = true;
+      document.querySelectorAll('.door').forEach(d => d.classList.remove('locked'));
+    });
+
+    // Lock all doors again
+    lockBtn.addEventListener('click', () => {
+      unlockAll = false;
+      document.querySelectorAll('.door').forEach((d, index) => {
+        d.classList.remove('open');
+        if (index + 1 > currentDay) {
+          d.classList.add('locked');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
