@@ -163,8 +163,8 @@
     const today = new Date();
 let currentDay = 0;
 
-// Doar între 1–25 decembrie se deblochează automat
-if (today.getMonth() === 11 && today.getDate() <= 24) {
+// DOAR între 1 și 24 decembrie se deblochează ușile
+if (today.getMonth() === 11 && today.getDate() >= 1 && today.getDate() <= 24) {
   currentDay = today.getDate();
 }
     let unlockAll = false;
@@ -292,5 +292,6 @@ if (today.getMonth() === 11 && today.getDate() <= 24) {
 </body>
 
 </html>
+
 
 
