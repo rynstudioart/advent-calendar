@@ -161,7 +161,12 @@
     const rows = 6;
     const total = cols * rows;
     const today = new Date();
-    const currentDay = today.getMonth() === 11 ? today.getDate() : 0;
+let currentDay = 0;
+
+// Doar între 1–25 decembrie se deblochează automat
+if (today.getMonth() === 11 && today.getDate() <= 25) {
+  currentDay = today.getDate();
+}
     let unlockAll = false;
 
     // 🎅 24 different Unsplash image URLs (you can change keywords!)
@@ -287,3 +292,4 @@
 </body>
 
 </html>
+
