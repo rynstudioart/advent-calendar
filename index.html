@@ -281,18 +281,17 @@ if (today.getMonth() === 11 && today.getDate() >= 1 && today.getDate() <= 24) {
 
     // Lock all doors again
     lockBtn.addEventListener('click', () => {
-      unlockAll = false;
-      document.querySelectorAll('.door').forEach((d, index) => {
-        d.classList.remove('open');
-        if (index + 1 > currentDay) {
-          d.classList.add('locked');
-        }
-      });
-    });
+  unlockAll = false;
+  document.querySelectorAll('.door').forEach((d, index) => {
+    d.classList.remove('open');     // închide tot
+    d.classList.add('locked');      // blochează tot
+  });
+});
   </script>
 </body>
 
 </html>
+
 
 
 
