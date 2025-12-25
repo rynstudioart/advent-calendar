@@ -166,6 +166,7 @@ let currentDay = 0;
 // DOAR între 1 și 24 decembrie se deblochează ușile
 if (today.getMonth() === 11 && today.getDate() >= 1 && today.getDate() <= 24) {
   currentDay = today.getDate();
+  unlockAll = false;
 }
     let unlockAll = false;
 
@@ -292,6 +293,7 @@ if (today.getMonth() === 11 && today.getDate() >= 1 && today.getDate() <= 24) {
 </body>
 
 </html>
+
 
 
 
